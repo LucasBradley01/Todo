@@ -51,7 +51,7 @@ state = {
     auth: null,
     client: null,
     googleSheets: null,
-    spreadsheetId: "1lVBkgPoAplRb5xiiA-pVWb8EetAI6scQql3LXbYRQfo",
+    spreadsheetId: "[REDACTED]",
     // This dictionary matches the keys to the values and is relevant
     // for the GET /all api command
     values: {},
