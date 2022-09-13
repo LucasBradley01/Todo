@@ -1,0 +1,196 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>TODO App</title>
+    <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+    <script src="https://unpkg.com/mithril/mithril.js"></script>
+    <script>
+    
+    const root = document.body;
+    var entries = [];
+    var information = "Enter a task you need to do below!"
+    var newTodo = "";
+    
+    var load = async () => {
+        let response = await m.request({
+            url: "http://localhost:3000/all",
+            method: "GET"
+        });
+
+        entries = Object.entries(response.data);
+        entries.sort((a, b) => {
+            return a[0] > b[0] ? 1 : -1;
+        });
+        m.render(root, m(webapp));
+    }
+
+    var add = async (newKey) => {
+        entries.push([newKey, "TODO"]);
+        entries.sort((a, b) => {
+            return a[0] > b[0] ? 1 : -1;
+        });
+        m.render(root, m(webapp));
+        
+        let response = await m.request({
+            url: "http://localhost:3000/data",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: {
+                "key": newKey,
+                "value": "TODO"
+            }
+        });
+
+        if (response.result === 200 && response.description == "Key must be unique") {
+            information = "Every task must have a unique name.";
+        }
+        else if (response.result === 200 && response.description == "OK") {
+            information = "Task successfully added!"
+        }
+        else {
+            information = "Something went wrong. Please contact lucas@qbradley.com for help.";
+        }
+
+        load();
+    }
+
+    var remove = async (index) => {        
+        let keyToRemove = entries[index][0];
+        entries.splice(index, 1);
+        m.render(root, m(webapp));
+        
+        let response = await m.request({
+            url: "http://localhost:3000/data/" + keyToRemove,
+            method: "DELETE",
+        });
+
+        if (response.result === 200 && response.description == "OK") {
+            information = "Task has been deleted.";
+        }
+        else {
+            information = "Something went wrong. Please contact lucas@qbradley.com for help.";
+        }
+
+        load();
+    }
+
+    var done = async (index) => {
+        entries[index][1] == "DONE";
+        m.render(root, m(webapp));
+        
+        let response = await m.request({
+            url: "http://localhost:3000/data/" + entries[index][0],
+            method: "DELETE",
+        });
+
+        response = await m.request({
+            url: "http://localhost:3000/data",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: {
+                "key": entries[index][0],
+                "value": "DONE"
+            }
+        });
+
+        if (response.result === 200 && response.description == "OK") {
+            information = "Task successfully updated!"
+        }
+        else {
+            information = "Something went wrong. Please contact lucas@qbradley.com for help.";
+        }
+
+        load();
+    }
+
+    // This is the view that will be displayed
+    var webapp = {
+        view: () => {
+            return m("div", {
+                class: "root"
+            }, [
+
+                // Add item
+                m("div", {
+                    class: "input"
+                }, [
+                    m("div", information),
+                    m("div"),
+
+                    // Text input for new item
+                    m("input", {
+                        oninput: (input) => {
+                            newTodo = input.target.value;
+                        },
+                        value: newTodo
+                    }),
+
+                    // Add new item button
+                    m("button", {
+                        onclick: () => {
+                            add(newTodo);
+                            newTodo = "";
+                            m.render(root, m(webapp));
+                        }
+                    }, "Add TODO")
+                ]),
+
+                // List of todo items
+                m("div", {
+                    class: "todo-table"
+                }, [
+                    m("div", "TODO"),
+                    m("br")
+                // Grab all of the TODO entries for this list
+                ].concat(entries.map((item, index) => {
+                    if (item[1] == "TODO") return m("div", {
+                        class: "todo-entry"
+                    }, [
+                        m("div", item[0]),
+                        m("button", {
+                            onclick: () => {
+                                done(index);
+                            }
+                        }, "Done"),
+                        m("button", {
+                            onclick: () => {
+                                remove(index);
+                            }
+                        }, "Delete")
+                    ]);
+                }))),
+
+                // List of done items
+                m("div", {
+                    class: "done-table"
+                }, [
+                    m("div", "DONE"),
+                    m("br")
+                ].concat(entries.map((item, index) => {
+                    if (item[1] == "DONE") return m("div", {
+                        class: "done-entry"
+                    }, [
+                        m("div", item[0]),
+                        m("button", {
+                            onclick: () => {
+                                remove(index);
+                            }
+                        }, "Delete")
+                    ]);
+                }))),
+            ]);
+        }
+    }
+
+    load();
+    
+    </script>
+</body>
+</html>

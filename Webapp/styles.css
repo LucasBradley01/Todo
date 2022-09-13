@@ -1,0 +1,39 @@
+.root {
+    font-family: 'Arial';
+    max-width: 50%;
+    background-color: lightblue;
+    margin: auto;
+    width: 50%;
+    padding: 20px;
+}
+
+.input {
+    padding: 10px;
+    display: grid;
+    background-color: lightyellow;
+    grid-template-columns: 80% 20%;
+}
+
+.todo-table {
+    padding: 10px;
+    background-color: lightcoral;
+}
+
+.todo-entry {
+    display: grid;
+    grid-template-columns: 60% 20% 20%;
+}
+
+.done-table {
+    padding: 10px;
+    background-color: lightgreen;
+}
+
+.done-entry {
+    display: grid;
+    grid-template-columns: 80% 20%;
+}
+
+button {
+    font-family: 'Arial';
+}
